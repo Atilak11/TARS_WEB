@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
+import * as THREE from "three";
 
 /* ═══════════════════════════════════════════════════════
    CONFIG & DATA
@@ -8,25 +9,25 @@ const CONFIG = {
   name: "TARS",
   fullName: "Triton Astronautics Research Systems Group",
   tagline: "Dream with Ambition. Design with Discipline. Deploy with Proof.",
-  email: "tars@ucsd.edu",
+  email: "tarsatucsd@gmail.com",
   website: "tarsgrp.org",
   instagram: "https://instagram.com/tarsatucsd",
-  formspreeId: "", // Set your Formspree ID here
+  formspreeId: "",
   logo: "/images/tars-logo.png",
 };
 
 const ROUTES = [
   { path: "", label: "Home" },
   { path: "about", label: "About" },
-  { path: "subteams", label: "Subteams" },
+  { path: "teams", label: "Teams" },
   { path: "launches", label: "Launches" },
   { path: "contact", label: "Contact" },
 ];
 
 const STATS = [
-  { value: 30, suffix: "+", label: "Active Members" },
+  { value: 50, suffix: "+", label: "Active Members" },
   { value: 2, suffix: "", label: "Flights Completed" },
-  { value: 5, suffix: "", label: "Engineering Subteams" },
+  { value: 6, suffix: "", label: "Teams" },
   { value: 3, suffix: "", label: "Faculty Advisors" },
 ];
 
@@ -35,21 +36,18 @@ const ROADMAP = [
     phase: "Phase 1",
     title: "High-Altitude Balloons",
     status: "NOW",
-    icon: "🎈",
     desc: "Building and launching HAB systems to near-space. Developing payload structures, avionics, power systems, and flight operations from the ground up.",
   },
   {
     phase: "Phase 2",
     title: "CanSat Program",
     status: "2027",
-    icon: "🚀",
     desc: "Designing miniature satellite payloads that simulate real satellite missions. Competing in the CanSat competition and advancing our systems.",
   },
   {
     phase: "Phase 3",
     title: "CubeSat Program",
     status: "2028+",
-    icon: "🛰️",
     desc: "Engineering and launching an orbital CubeSat. The culmination of our progressive development — from atmosphere to orbit.",
   },
 ];
@@ -57,48 +55,44 @@ const ROADMAP = [
 const SUBTEAMS = [
   {
     name: "Mechanical",
-    icon: "⚙️",
     color: "from-blue-500/20 to-cyan-500/20",
     desc: "The Mechanical Department designs and builds all structural flight hardware within TARS. For our current high-altitude balloon (HIBAL) missions, the team is developing modular payload structures that house avionics, electrical systems, and mission payloads. These structures are designed to survive extreme temperatures and pressures at altitude while remaining recoverable and reusable for future flights. Mechanical works closely with every department to ensure seamless integration across systems.",
     focus: ["Structural Design & CAD", "Payload Integration", "Thermal Management", "Manufacturing & Fabrication"],
-    /* TEAM PHOTO: Place image in public/images/ and set the path below, e.g.:
-       photo: "/images/subteam-mechanical.jpg", */
     photo: null,
   },
   {
     name: "Electrical",
-    icon: "⚡",
     color: "from-yellow-500/20 to-orange-500/20",
     desc: "The Electrical Department is responsible for power distribution and communications across all flight systems. For HIBAL, the team is developing the payload's electrical power system and communications architecture, ensuring reliable operation throughout ascent, float, descent, and recovery. Electrical plays a critical role in keeping every subsystem powered, connected, and traceable throughout the mission.",
     focus: ["Power Systems (EPS)", "Communications", "PCB Design", "Circuit Analysis & Soldering"],
-    /* TEAM PHOTO: photo: "/images/subteam-electrical.jpg", */
     photo: null,
   },
   {
     name: "Avionics",
-    icon: "🖥️",
     color: "from-green-500/20 to-emerald-500/20",
     desc: "The Avionics Department develops all onboard computing hardware and flight software. Currently, the team is designing the primary flight computer and sensor interface for the HIBAL payload. For the first flight, avionics systems will operate in a passive data-collection mode, recording sensor data to validate system performance before transitioning to active control and autonomy in future missions.",
     focus: ["Flight Computers (ESP32)", "Sensor Integration", "Data Logging", "Flight Software"],
-    /* TEAM PHOTO: photo: "/images/subteam-avionics.jpg", */
     photo: null,
   },
   {
-    name: "Astro / Payload",
-    icon: "🔬",
-    color: "from-purple-500/20 to-pink-500/20",
-    desc: "The Payload Department defines mission objectives and develops the hardware and experiments flown on each mission. As the most versatile department, Payload leads mission planning, system requirements, and performance analysis. For the first HIBAL flight, the team is developing a sensor-based payload and running simulations to evaluate flight conditions, constraints, and expected mission outcomes.",
+    name: "Astro / Pay",
+    color: "from-purple-500/20 to-violet-500/20",
+    desc: "The Astronautics, Payload, and Mission Design (Astro/Pay) Department defines mission objectives and develops the hardware and experiments flown on each mission. As the most versatile department, Astro/Pay leads mission planning, system requirements, and performance analysis. For the first HIBAL flight, the team is developing a sensor-based payload and running simulations to evaluate flight conditions, constraints, and expected mission outcomes.",
     focus: ["Mission Planning", "Scientific Payloads", "Simulations", "Launch Operations"],
-    /* TEAM PHOTO: photo: "/images/subteam-payload.jpg", */
     photo: null,
   },
   {
-    name: "External",
-    icon: "🤝",
-    color: "from-gold/20 to-yellow-500/20",
-    desc: "The External Team at TARS focuses on building and maintaining relationships outside the organization to support the mission's success. Their goals are to secure sponsorships and funding, manage industry, academic, and institutional partnerships, and handle outreach, communications, and branding.",
-    focus: ["Sponsorship & Finance", "Marketing & Social Media", "Partnership Outreach", "Branding & Content"],
-    /* TEAM PHOTO: photo: "/images/subteam-external.jpg", */
+    name: "Finance",
+    color: "from-amber-500/20 to-yellow-500/20",
+    desc: "The Finance team manages TARS's financial operations and sponsorship pipeline. From securing corporate and institutional funding to budget planning and grant applications, they ensure the engineering teams have the resources needed to design, build, and fly.",
+    focus: ["Sponsorship Acquisition", "Budget Management", "Grant Applications", "Financial Planning"],
+    photo: null,
+  },
+  {
+    name: "Marketing",
+    color: "from-rose-500/20 to-pink-500/20",
+    desc: "The Marketing team drives TARS's public presence and brand identity. Through social media content, event coordination, partnership communications, and visual storytelling, they amplify our mission and connect with the broader aerospace community.",
+    focus: ["Social Media", "Content Creation", "Event Coordination", "Branding & Design"],
     photo: null,
   },
 ];
@@ -111,8 +105,8 @@ const LEADERSHIP = [
 
 const DIRECTORS = [
   { name: "John Smith", role: "Director of Avionics", major: "Aerospace Engineering", year: "4th Year" },
-  { name: "Logan Parker", role: "Director of Astro/Payload", major: "Aerospace Engineering", year: "1st Year" },
-  { name: "Ezekiel Martin", role: "Director of Mechanical", major: "Mechanical Engineering", year: "Senior" },
+  { name: "Logan Parker", role: "Director of Astro/Pay", major: "Aerospace Engineering", year: "1st Year" },
+  { name: "Sarah Espinoza", role: "Director of Mechanical", major: "Mechanical Engineering", year: "" },
   { name: "Luis Ball", role: "Acting Director of Electrical", major: "Aerospace Engineering", year: "1st Year" },
   { name: "Aaron Goldstone", role: "Director of Finance", major: "Business Economics", year: "1st Year" },
   { name: "Luke Lahoud", role: "Director of Marketing", major: "Economics", year: "1st Year" },
@@ -170,13 +164,6 @@ const LAUNCHES = [
       "/images/flight2-helium-prep-close.jpg",
       "/images/flight2-helium-prep-wide.jpg",
     ],
-    /* ── VIDEO PLACEHOLDER ──
-       To add the Flight 2 launch video:
-       1. Place your .mov or .mp4 file in  public/videos/  (e.g. public/videos/flight2-launch.mp4)
-       2. Uncomment the video property below and set the path:
-          video: "/videos/flight2-launch.mp4",
-       The LaunchesPage component will automatically render a <video> player for it.
-    */
     // video: "/videos/flight2-launch.mp4",
     highlights: [
       "Successful payload recovery",
@@ -250,7 +237,7 @@ function initStarfield() {
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   let w, h, stars = [], mouse = { x: 0, y: 0 };
-  const STAR_COUNT = 200;
+  const STAR_COUNT = 120;
 
   function resize() {
     w = canvas.width = window.innerWidth;
@@ -263,11 +250,11 @@ function initStarfield() {
       stars.push({
         x: Math.random() * w,
         y: Math.random() * h,
-        r: Math.random() * 1.5 + 0.3,
+        r: Math.random() * 1.2 + 0.2,
         speed: Math.random() * 0.3 + 0.05,
         twinkleSpeed: Math.random() * 0.02 + 0.005,
         twinklePhase: Math.random() * Math.PI * 2,
-        isGold: Math.random() < 0.12,
+        isGold: Math.random() < 0.08,
       });
     }
   }
@@ -277,26 +264,23 @@ function initStarfield() {
     const time = Date.now() * 0.001;
 
     stars.forEach((s) => {
-      const opacity = 0.3 + 0.7 * Math.abs(Math.sin(time * s.twinkleSpeed * 10 + s.twinklePhase));
+      const opacity = 0.2 + 0.5 * Math.abs(Math.sin(time * s.twinkleSpeed * 10 + s.twinklePhase));
       const parallaxX = (mouse.x - w / 2) * s.speed * 0.02;
       const parallaxY = (mouse.y - h / 2) * s.speed * 0.02;
 
       ctx.beginPath();
       ctx.arc(s.x + parallaxX, s.y + parallaxY, s.r, 0, Math.PI * 2);
-      if (s.isGold) {
-        ctx.fillStyle = `rgba(255, 222, 89, ${opacity * 0.8})`;
-      } else {
-        ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 0.5})`;
-      }
+      ctx.fillStyle = s.isGold
+        ? `rgba(255, 222, 89, ${opacity * 0.5})`
+        : `rgba(200, 215, 240, ${opacity * 0.3})`;
       ctx.fill();
 
-      // Subtle glow for larger stars
       if (s.r > 1) {
         ctx.beginPath();
-        ctx.arc(s.x + parallaxX, s.y + parallaxY, s.r * 3, 0, Math.PI * 2);
+        ctx.arc(s.x + parallaxX, s.y + parallaxY, s.r * 2.5, 0, Math.PI * 2);
         ctx.fillStyle = s.isGold
-          ? `rgba(255, 222, 89, ${opacity * 0.06})`
-          : `rgba(200, 220, 255, ${opacity * 0.04})`;
+          ? `rgba(255, 222, 89, ${opacity * 0.04})`
+          : `rgba(180, 200, 240, ${opacity * 0.025})`;
         ctx.fill();
       }
     });
@@ -314,16 +298,173 @@ function initStarfield() {
 
 
 /* ═══════════════════════════════════════════════════════
+   3D SATELLITE (Three.js)
+   ═══════════════════════════════════════════════════════ */
+
+function SatelliteScene() {
+  const containerRef = useRef(null);
+  const mouseRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(0, 0.3, 4.5);
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    const gold = 0xffde59;
+    const wireMat = new THREE.LineBasicMaterial({ color: gold, transparent: true, opacity: 0.4 });
+    const wireMatDim = new THREE.LineBasicMaterial({ color: gold, transparent: true, opacity: 0.12 });
+
+    const sat = new THREE.Group();
+
+    const addEdges = (geo, mat, pos, rot) => {
+      const line = new THREE.LineSegments(new THREE.EdgesGeometry(geo), mat || wireMat);
+      if (pos) line.position.set(...pos);
+      if (rot) line.rotation.set(...rot);
+      sat.add(line);
+    };
+
+    const addLine = (points, mat) => {
+      const geo = new THREE.BufferGeometry().setFromPoints(points.map(p => new THREE.Vector3(...p)));
+      sat.add(new THREE.Line(geo, mat || wireMatDim));
+    };
+
+    // CubeSat bus
+    addEdges(new THREE.BoxGeometry(1, 0.75, 1));
+    addEdges(new THREE.BoxGeometry(0.5, 0.4, 0.5), wireMatDim);
+
+    // Solar panels
+    addEdges(new THREE.BoxGeometry(1.4, 0.02, 0.65), wireMat, [-1.2, 0, 0]);
+    addEdges(new THREE.BoxGeometry(1.4, 0.02, 0.65), wireMat, [1.2, 0, 0]);
+
+    // Panel grid lines
+    for (const sx of [-1.2, 1.2]) {
+      addLine([[sx - 0.68, 0.015, 0], [sx + 0.68, 0.015, 0]]);
+      addLine([[sx, 0.015, -0.3], [sx, 0.015, 0.3]]);
+    }
+
+    // Panel struts
+    addLine([[-0.5, 0, 0.08], [-0.5, 0, -0.08]]);
+    addLine([[0.5, 0, 0.08], [0.5, 0, -0.08]]);
+
+    // Antenna mast
+    addLine([[0, 0.375, 0], [0, 1.05, 0]], wireMat);
+
+    // Antenna dish
+    const dishGeo = new THREE.ConeGeometry(0.1, 0.1, 8, 1, true);
+    const dishWire = new THREE.LineSegments(new THREE.WireframeGeometry(dishGeo), wireMat);
+    dishWire.position.set(0, 1.1, 0);
+    dishWire.rotation.x = Math.PI;
+    sat.add(dishWire);
+
+    // Sensor module
+    addEdges(new THREE.CylinderGeometry(0.06, 0.1, 0.16, 6), wireMatDim, [0.3, -0.45, 0.3]);
+
+    // Orbit ring
+    const orbitPts = [];
+    for (let i = 0; i <= 128; i++) {
+      const a = (i / 128) * Math.PI * 2;
+      orbitPts.push(new THREE.Vector3(Math.cos(a) * 2.8, 0, Math.sin(a) * 2.8));
+    }
+    const orbitGeo = new THREE.BufferGeometry().setFromPoints(orbitPts);
+    const orbitLine = new THREE.Line(orbitGeo, new THREE.LineBasicMaterial({ color: gold, transparent: true, opacity: 0.06 }));
+    orbitLine.rotation.set(1.2, 0, 0.3);
+    sat.add(orbitLine);
+
+    scene.add(sat);
+    sat.rotation.set(0.3, -0.5, 0.1);
+
+    // Perspective grid
+    const grid = new THREE.GridHelper(20, 40, gold, gold);
+    grid.position.y = -2;
+    const gridMats = Array.isArray(grid.material) ? grid.material : [grid.material];
+    gridMats.forEach(m => { m.transparent = true; m.opacity = 0.025; });
+    scene.add(grid);
+
+    // Ambient particles
+    const pCount = 40;
+    const pGeo = new THREE.BufferGeometry();
+    const pPos = new Float32Array(pCount * 3);
+    for (let i = 0; i < pCount; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 2 + Math.random() * 3;
+      pPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      pPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      pPos[i * 3 + 2] = r * Math.cos(phi);
+    }
+    pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+    const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({
+      color: gold, size: 0.015, transparent: true, opacity: 0.25,
+    }));
+    scene.add(particles);
+
+    const clock = new THREE.Clock();
+    let animId;
+
+    const animate = () => {
+      animId = requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+
+      sat.rotation.y = -0.5 + t * 0.1;
+      const tx = 0.3 + mouseRef.current.y * 0.15;
+      const tz = mouseRef.current.x * 0.08;
+      sat.rotation.x += (tx - sat.rotation.x) * 0.025;
+      sat.rotation.z += (tz - sat.rotation.z) * 0.025;
+
+      particles.rotation.y = t * 0.012;
+
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    const onResize = () => {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+
+    const onMouse = (e) => {
+      mouseRef.current.x = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouseRef.current.y = (e.clientY / window.innerHeight - 0.5) * 2;
+    };
+
+    window.addEventListener("resize", onResize);
+    window.addEventListener("mousemove", onMouse);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("mousemove", onMouse);
+      renderer.dispose();
+      if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
+    };
+  }, []);
+
+  return <div ref={containerRef} className="absolute inset-0 pointer-events-none" />;
+}
+
+
+/* ═══════════════════════════════════════════════════════
    SHARED COMPONENTS
    ═══════════════════════════════════════════════════════ */
 
 function Reveal({ children, delay = 0, className = "", direction = "up" }) {
   const [ref, visible] = useInView();
   const transforms = {
-    up: "translateY(32px)",
-    down: "translateY(-32px)",
-    left: "translateX(-40px)",
-    right: "translateX(40px)",
+    up: "translateY(24px)",
+    down: "translateY(-24px)",
+    left: "translateX(-30px)",
+    right: "translateX(30px)",
   };
   return (
     <div
@@ -332,7 +473,7 @@ function Reveal({ children, delay = 0, className = "", direction = "up" }) {
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translate(0)" : transforms[direction],
-        transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`,
+        transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
       }}
     >
       {children}
@@ -363,9 +504,9 @@ function SectionHeading({ eyebrow, title, subtitle }) {
 function GoldButton({ children, onClick, href, className = "", variant = "primary" }) {
   const base =
     variant === "primary"
-      ? "bg-gold text-navy font-bold hover:bg-gold-glow hover:shadow-[0_0_30px_rgba(255,222,89,0.3)]"
+      ? "bg-gold text-navy font-bold hover:bg-gold-glow hover:shadow-[0_0_24px_rgba(255,222,89,0.2)]"
       : variant === "outline"
-      ? "border-2 border-gold text-gold font-bold hover:bg-gold/10"
+      ? "border border-gold/60 text-gold font-bold hover:bg-gold/10"
       : "bg-navy-mid text-ink-muted hover:text-ink hover:bg-navy-surface";
   const cls = `inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm tracking-wide transition-all duration-300 cursor-pointer ${base} ${className}`;
 
@@ -378,7 +519,7 @@ function GoldButton({ children, onClick, href, className = "", variant = "primar
 
 function Card({ children, className = "", hover = true }) {
   return (
-    <div className={`bg-navy-light/60 backdrop-blur-sm border border-ink-faint/10 rounded-2xl ${hover ? "hover:border-gold/20 hover:shadow-lift hover:-translate-y-1 transition-all duration-300" : ""} ${className}`}>
+    <div className={`bg-navy-light/50 backdrop-blur-sm border border-ink-faint/8 rounded-xl ${hover ? "hover:border-gold/15 hover:shadow-lift hover:-translate-y-0.5 transition-all duration-300" : ""} ${className}`}>
       {children}
     </div>
   );
@@ -396,32 +537,6 @@ function StatCard({ value, suffix, label, delay, visible }) {
       </Card>
     </Reveal>
   );
-}
-
-function OrbitRing({ size = 400, duration = 30, dotSize = 6, className = "" }) {
-  return (
-    <div
-      className={`absolute rounded-full border border-gold/10 ${className}`}
-      style={{ width: size, height: size }}
-    >
-      <div
-        className="absolute rounded-full bg-gold/40"
-        style={{
-          width: dotSize,
-          height: dotSize,
-          top: -dotSize / 2,
-          left: "50%",
-          marginLeft: -dotSize / 2,
-          animation: `orbit ${duration}s linear infinite`,
-          transformOrigin: `0 ${size / 2}px`,
-        }}
-      />
-    </div>
-  );
-}
-
-function Divider() {
-  return <div className="w-full max-w-4xl mx-auto gradient-border-b my-0" />;
 }
 
 
@@ -446,13 +561,11 @@ function Navbar({ route, nav }) {
       }`}
     >
       <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-16 sm:h-20">
-        {/* Logo */}
         <button onClick={() => nav("")} className="flex items-center gap-3 cursor-pointer bg-transparent border-0">
           <img src={CONFIG.logo} alt="TARS" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full" />
           <span className="font-display font-bold text-lg sm:text-xl tracking-wide hidden sm:block">TARS</span>
         </button>
 
-        {/* Desktop links */}
         <div className="hidden md:flex items-center gap-1">
           {ROUTES.map((r) => (
             <button
@@ -469,7 +582,6 @@ function Navbar({ route, nav }) {
           ))}
         </div>
 
-        {/* Mobile toggle */}
         <button
           className="md:hidden flex flex-col gap-1.5 p-2 cursor-pointer bg-transparent border-0"
           onClick={() => setMobileOpen(!mobileOpen)}
@@ -481,7 +593,6 @@ function Navbar({ route, nav }) {
         </button>
       </div>
 
-      {/* Mobile menu */}
       <div
         className={`md:hidden overflow-hidden transition-all duration-300 ${
           mobileOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
@@ -512,10 +623,9 @@ function Navbar({ route, nav }) {
 
 function Footer({ nav }) {
   return (
-    <footer className="relative z-10 border-t border-ink-faint/10 bg-navy-light/40 backdrop-blur-sm mt-20">
+    <footer className="relative z-10 border-t border-ink-faint/8 bg-navy-light/30 backdrop-blur-sm mt-20">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-          {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-4">
               <img src={CONFIG.logo} alt="TARS" className="w-10 h-10 rounded-full" />
@@ -529,7 +639,6 @@ function Footer({ nav }) {
             </p>
           </div>
 
-          {/* Links */}
           <div>
             <h4 className="font-display font-bold text-gold text-sm tracking-wide mb-4">Navigate</h4>
             <div className="flex flex-col gap-2">
@@ -545,13 +654,12 @@ function Footer({ nav }) {
             </div>
           </div>
 
-          {/* Contact */}
           <div>
             <h4 className="font-display font-bold text-gold text-sm tracking-wide mb-4">Contact</h4>
             <div className="flex flex-col gap-2 text-sm text-ink-muted">
               <a href={`mailto:${CONFIG.email}`} className="hover:text-gold transition-colors">{CONFIG.email}</a>
               <a href={CONFIG.instagram} target="_blank" rel="noopener" className="hover:text-gold transition-colors">@tarsatucsd</a>
-              <span>9500 Gilman Drive, La Jolla, CA 92093</span>
+              <span>9500 Gilman Drive, La Jolla, CA 92093-0078</span>
             </div>
           </div>
         </div>
@@ -578,19 +686,14 @@ function Home({ nav }) {
     <div>
       {/* ── HERO ── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden px-5">
-        {/* Orbit decoration */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <OrbitRing size={500} duration={35} className="opacity-30 hidden sm:block" />
-          <OrbitRing size={700} duration={50} dotSize={4} className="opacity-20 hidden lg:block" />
-          <OrbitRing size={300} duration={25} dotSize={8} className="opacity-20" />
-        </div>
+        <SatelliteScene />
 
         <div className="relative z-10 text-center max-w-4xl mx-auto">
           <Reveal delay={100}>
             <img
               src={CONFIG.logo}
               alt="TARS Logo"
-              className="w-32 h-32 sm:w-44 sm:h-44 mx-auto mb-8 float-gentle drop-shadow-[0_0_30px_rgba(255,222,89,0.2)]"
+              className="w-28 h-28 sm:w-36 sm:h-36 mx-auto mb-8 float-gentle drop-shadow-[0_0_24px_rgba(255,222,89,0.15)]"
             />
           </Reveal>
           <Reveal delay={250}>
@@ -626,14 +729,6 @@ function Home({ nav }) {
             </div>
           </Reveal>
         </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-ink-faint animate-bounce">
-          <span className="text-xs tracking-widest uppercase">Scroll</span>
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7" />
-          </svg>
-        </div>
       </section>
 
       {/* ── MISSION STRIP ── */}
@@ -650,7 +745,7 @@ function Home({ nav }) {
       {/* ── TEAM BANNER ── */}
       <section className="relative z-10 px-5 pb-16">
         <Reveal>
-          <div className="max-w-6xl mx-auto rounded-2xl overflow-hidden relative group">
+          <div className="max-w-6xl mx-auto rounded-xl overflow-hidden relative group">
             <img
               src="/images/team-group-photo.png"
               alt="TARS team group photo"
@@ -659,7 +754,7 @@ function Home({ nav }) {
             <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/30 to-transparent" />
             <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8">
               <Eyebrow>Our Team</Eyebrow>
-              <h3 className="font-display text-2xl sm:text-3xl font-bold mt-1">30+ Members Strong</h3>
+              <h3 className="font-display text-2xl sm:text-3xl font-bold mt-1">50+ Members Strong</h3>
               <p className="text-ink-muted text-sm mt-1">Building the future of space at UC San Diego</p>
             </div>
           </div>
@@ -677,12 +772,12 @@ function Home({ nav }) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {ROADMAP.map((item, i) => (
               <Reveal key={item.phase} delay={i * 150}>
-                <Card className={`p-8 h-full ${i === 0 ? "border-gold/30 pulse-gold" : ""}`}>
-                  <div className="text-3xl mb-4">{item.icon}</div>
+                <Card className={`p-8 h-full ${i === 0 ? "border-gold/20" : ""}`}>
+                  <span className="font-mono text-3xl font-bold text-gold/15 leading-none">{String(i + 1).padStart(2, "0")}</span>
                   <Eyebrow>{item.phase}</Eyebrow>
                   <h3 className="font-display text-xl font-bold mt-2 mb-1">{item.title}</h3>
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide mb-4 ${
-                    i === 0 ? "bg-gold/20 text-gold" : "bg-ink-faint/20 text-ink-muted"
+                    i === 0 ? "bg-gold/15 text-gold" : "bg-ink-faint/15 text-ink-muted"
                   }`}>
                     {item.status}
                   </span>
@@ -715,40 +810,34 @@ function Home({ nav }) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {
-                icon: "🏗️",
                 title: "Progressive Development",
                 text: "We don't jump to CubeSats day one. Our three-phase roadmap builds capability step by step — from balloons to orbit.",
               },
               {
-                icon: "🎯",
                 title: "Mission-Driven Operations",
                 text: "We mirror professional aerospace practices: technical leads, documentation requirements, testing processes, and project management.",
               },
               {
-                icon: "🧪",
                 title: "Real Hardware, Real Flights",
                 text: "We don't just design on paper. We build, test, fly, recover, and iterate. Every member touches real flight hardware.",
               },
               {
-                icon: "🤝",
                 title: "Cross-Discipline Collaboration",
                 text: "Students from engineering, science, business, and more — all working together to solve real aerospace challenges.",
               },
               {
-                icon: "🎓",
                 title: "Faculty-Backed Research",
                 text: "Three MAE Department faculty advisors support our technical work and help bridge classroom theory with practical application.",
               },
               {
-                icon: "📈",
                 title: "Rapid Growth",
                 text: "Founded in 2025, launched our first flight in 2026, and growing fast. We're building UCSD's spacecraft development pipeline.",
               },
             ].map((item, i) => (
               <Reveal key={item.title} delay={i * 80}>
                 <Card className="p-7 h-full">
-                  <div className="text-2xl mb-3">{item.icon}</div>
-                  <h3 className="font-display text-lg font-bold mb-2">{item.title}</h3>
+                  <span className="font-mono text-xs text-gold/30 tracking-widest">{String(i + 1).padStart(2, "0")}</span>
+                  <h3 className="font-display text-lg font-bold mt-2 mb-2">{item.title}</h3>
                   <p className="text-ink-muted text-sm leading-relaxed">{item.text}</p>
                 </Card>
               </Reveal>
@@ -776,8 +865,8 @@ function Home({ nav }) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </GoldButton>
-              <GoldButton variant="outline" onClick={() => nav("subteams")}>
-                Explore Subteams
+              <GoldButton variant="outline" onClick={() => nav("teams")}>
+                Explore Teams
               </GoldButton>
             </div>
           </Card>
@@ -802,7 +891,6 @@ function About({ nav }) {
           subtitle="A student-led organization at UC San Diego advancing space research through design, applied engineering, and collaboration."
         />
 
-        {/* Story */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20">
           <Reveal direction="left">
             <Card className="p-8 sm:p-10 h-full" hover={false}>
@@ -822,7 +910,7 @@ function About({ nav }) {
                 Less than six weeks later, they launched their first high-altitude balloon — "Toast" — into near-space.
                 The second flight "Rocky" followed in Spring 2026 with improved systems and procedures.
               </p>
-              <div className="rounded-xl overflow-hidden">
+              <div className="rounded-lg overflow-hidden">
                 <img
                   src="/images/flight1-payload-inspection.jpg"
                   alt="Team inspecting payload hardware at Torrey Pines"
@@ -849,7 +937,7 @@ function About({ nav }) {
                 technical leads, documentation requirements, testing processes, and project management. Every member
                 gains practical experience while contributing to real research.
               </p>
-              <div className="rounded-xl overflow-hidden">
+              <div className="rounded-lg overflow-hidden">
                 <img
                   src="/images/flight2-balloon-ready.jpg"
                   alt="Team preparing balloon for launch"
@@ -860,9 +948,8 @@ function About({ nav }) {
           </Reveal>
         </div>
 
-        {/* Team photo banner */}
         <Reveal>
-          <div className="rounded-2xl overflow-hidden mb-20 relative group">
+          <div className="rounded-xl overflow-hidden mb-20 relative group">
             <img
               src="/images/team-group-photo.png"
               alt="TARS full team"
@@ -876,7 +963,6 @@ function About({ nav }) {
           </div>
         </Reveal>
 
-        {/* University Affiliation */}
         <Reveal>
           <Card className="p-8 sm:p-12 mb-20 text-center" hover={false}>
             <Eyebrow>University Affiliation</Eyebrow>
@@ -890,19 +976,17 @@ function About({ nav }) {
           </Card>
         </Reveal>
 
-        {/* Leadership */}
         <SectionHeading
           eyebrow="Leadership"
           title="Meet the Team"
           subtitle="The people driving TARS's mission forward."
         />
 
-        {/* Exec */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
           {LEADERSHIP.map((person, i) => (
             <Reveal key={person.name} delay={i * 120}>
               <Card className="p-7 text-center h-full">
-                <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-gold/20 to-navy-mid flex items-center justify-center text-2xl font-bold text-gold mb-4 border-2 border-gold/20">
+                <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-gold/15 to-navy-mid flex items-center justify-center text-2xl font-bold text-gold/70 mb-4 border border-gold/15">
                   {person.name.split(" ").map(n => n[0]).join("")}
                 </div>
                 <h4 className="font-display font-bold text-lg">{person.name}</h4>
@@ -913,12 +997,11 @@ function About({ nav }) {
           ))}
         </div>
 
-        {/* Directors */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-16">
           {DIRECTORS.map((person, i) => (
             <Reveal key={person.name + person.role} delay={i * 80}>
               <Card className="p-5 text-center h-full">
-                <div className="w-12 h-12 mx-auto rounded-full bg-navy-mid flex items-center justify-center text-sm font-bold text-gold mb-3 border border-gold/20">
+                <div className="w-12 h-12 mx-auto rounded-full bg-navy-mid flex items-center justify-center text-sm font-bold text-gold/60 mb-3 border border-gold/15">
                   {person.name.split(" ").map(n => n[0]).join("")}
                 </div>
                 <h4 className="font-display font-bold text-sm">{person.name}</h4>
@@ -928,7 +1011,6 @@ function About({ nav }) {
           ))}
         </div>
 
-        {/* Faculty */}
         <SectionHeading
           eyebrow="Faculty Support"
           title="Our Advisors"
@@ -937,8 +1019,8 @@ function About({ nav }) {
           {ADVISORS.map((a, i) => (
             <Reveal key={a.name} delay={i * 100}>
               <Card className="p-7 text-center h-full">
-                <div className="w-16 h-16 mx-auto rounded-full bg-navy-mid flex items-center justify-center text-xl mb-4 border border-ink-faint/20">
-                  🎓
+                <div className="w-16 h-16 mx-auto rounded-full bg-navy-mid flex items-center justify-center text-lg mb-4 border border-ink-faint/15 font-display font-bold text-gold/50">
+                  {a.name.split(" ").pop()[0]}
                 </div>
                 <h4 className="font-display font-bold">{a.name}</h4>
                 <p className="text-ink-muted text-sm mt-1">{a.title}</p>
@@ -947,29 +1029,27 @@ function About({ nav }) {
           ))}
         </div>
 
-        {/* Org Chart visual */}
         <Reveal>
           <Card className="p-8 sm:p-10 text-center" hover={false}>
             <Eyebrow>Organization</Eyebrow>
             <h3 className="font-display text-xl font-bold mt-3 mb-6">How We're Structured</h3>
             <div className="max-w-lg mx-auto">
-              {/* Simple visual hierarchy */}
               <div className="flex justify-center mb-4">
-                <span className="bg-gold/20 text-gold text-xs font-bold px-4 py-2 rounded-full border border-gold/30">
+                <span className="bg-gold/15 text-gold text-xs font-bold px-4 py-2 rounded-full border border-gold/20">
                   President
                 </span>
               </div>
               <div className="flex justify-center gap-6 mb-4">
-                <span className="bg-navy-mid text-ink text-xs font-bold px-4 py-2 rounded-full border border-ink-faint/20">
+                <span className="bg-navy-mid text-ink text-xs font-bold px-4 py-2 rounded-full border border-ink-faint/15">
                   VP Engineering
                 </span>
-                <span className="bg-navy-mid text-ink text-xs font-bold px-4 py-2 rounded-full border border-ink-faint/20">
+                <span className="bg-navy-mid text-ink text-xs font-bold px-4 py-2 rounded-full border border-ink-faint/15">
                   VP External
                 </span>
               </div>
               <div className="flex flex-wrap justify-center gap-3">
                 {["Avionics", "Electrical", "Mechanical", "Astro/Pay", "Finance", "Marketing"].map((t) => (
-                  <span key={t} className="bg-navy-light text-ink-muted text-xs px-3 py-1.5 rounded-full border border-ink-faint/10">
+                  <span key={t} className="bg-navy-light text-ink-muted text-xs px-3 py-1.5 rounded-full border border-ink-faint/8">
                     {t}
                   </span>
                 ))}
@@ -984,24 +1064,23 @@ function About({ nav }) {
 
 
 /* ═══════════════════════════════════════════════════════
-   SUBTEAMS PAGE
+   TEAMS PAGE
    ═══════════════════════════════════════════════════════ */
 
-function Subteams({ nav }) {
+function Teams({ nav }) {
   return (
     <div className="pt-28 sm:pt-36 pb-10">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">
         <SectionHeading
           eyebrow="Engineering & Operations"
-          title="Our Subteams"
-          subtitle="TARS subteams work together as an integrated system to design and execute successful missions. Each contributes specialized expertise — from building and powering to computing and defining mission systems."
+          title="Our Teams"
+          subtitle="TARS teams work together as an integrated system to design and execute successful missions. Each contributes specialized expertise — from building and powering to computing and defining mission systems."
         />
 
         <div className="space-y-8">
           {SUBTEAMS.map((team, i) => (
             <Reveal key={team.name} delay={i * 100} direction={i % 2 === 0 ? "left" : "right"}>
               <Card className="overflow-hidden" hover={false}>
-                {/* Team photo or placeholder */}
                 {team.photo ? (
                   <div className="w-full h-48 sm:h-56 overflow-hidden">
                     <img
@@ -1011,20 +1090,17 @@ function Subteams({ nav }) {
                     />
                   </div>
                 ) : (
-                  <div className={`w-full h-24 sm:h-28 bg-gradient-to-r ${team.color} flex items-center justify-center`}>
-                    <span className="text-4xl opacity-40">{team.icon}</span>
+                  <div className={`w-full h-20 sm:h-24 bg-gradient-to-r ${team.color} flex items-center px-8`}>
+                    <span className="font-display text-5xl sm:text-6xl font-bold text-white/[0.06] select-none">{team.name}</span>
                   </div>
                 )}
 
                 <div className="p-8 sm:p-10">
                   <div className="flex flex-col lg:flex-row gap-8">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-3xl">{team.icon}</span>
-                        <div>
-                          <h3 className="font-display text-2xl font-bold">{team.name}</h3>
-                          <div className="h-0.5 w-16 bg-gold mt-1" />
-                        </div>
+                      <div className="mb-4">
+                        <h3 className="font-display text-2xl font-bold">{team.name}</h3>
+                        <div className="h-0.5 w-12 bg-gold/60 mt-2" />
                       </div>
                       <p className="text-ink-muted text-sm leading-relaxed">{team.desc}</p>
                     </div>
@@ -1032,7 +1108,7 @@ function Subteams({ nav }) {
                       <h4 className="font-display font-bold text-sm text-gold mb-3">Focus Areas</h4>
                       <div className="flex flex-wrap gap-2">
                         {team.focus.map((f) => (
-                          <span key={f} className="bg-navy-mid/80 text-ink-muted text-xs px-3 py-1.5 rounded-full border border-ink-faint/10">
+                          <span key={f} className="bg-navy-mid/80 text-ink-muted text-xs px-3 py-1.5 rounded-full border border-ink-faint/8">
                             {f}
                           </span>
                         ))}
@@ -1045,11 +1121,10 @@ function Subteams({ nav }) {
           ))}
         </div>
 
-        {/* CTA */}
         <Reveal>
           <div className="text-center mt-16">
             <p className="text-ink-muted mb-6">
-              Interested in joining a subteam? Reach out to learn more about current openings.
+              Interested in joining a team? Reach out to learn more about current openings.
             </p>
             <GoldButton onClick={() => nav("contact")}>
               Contact Us
@@ -1077,11 +1152,9 @@ function PhotoGallery({ photos }) {
 
   return (
     <>
-      {/* Gallery */}
       <div className="mb-5">
-        {/* Main image */}
         <div
-          className="relative rounded-xl overflow-hidden cursor-pointer group mb-3"
+          className="relative rounded-lg overflow-hidden cursor-pointer group mb-3"
           style={{ aspectRatio: "16/10" }}
           onClick={() => setLightbox(true)}
         >
@@ -1096,7 +1169,6 @@ function PhotoGallery({ photos }) {
           </div>
         </div>
 
-        {/* Thumbnails */}
         {photos.length > 1 && (
           <div className="flex gap-2 overflow-x-auto pb-1">
             {photos.map((src, i) => (
@@ -1105,8 +1177,8 @@ function PhotoGallery({ photos }) {
                 onClick={() => setActive(i)}
                 className={`shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                   i === active
-                    ? "border-gold shadow-[0_0_12px_rgba(255,222,89,0.25)]"
-                    : "border-transparent opacity-60 hover:opacity-100"
+                    ? "border-gold shadow-[0_0_10px_rgba(255,222,89,0.2)]"
+                    : "border-transparent opacity-50 hover:opacity-100"
                 }`}
               >
                 <img src={src} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" />
@@ -1116,7 +1188,6 @@ function PhotoGallery({ photos }) {
         )}
       </div>
 
-      {/* Lightbox */}
       {lightbox && (
         <div
           className="fixed inset-0 z-[100] bg-navy/95 backdrop-blur-lg flex items-center justify-center p-4"
@@ -1127,20 +1198,19 @@ function PhotoGallery({ photos }) {
             onClick={() => setLightbox(false)}
             aria-label="Close"
           >
-            ✕
+            &#x2715;
           </button>
-          {/* Prev/Next */}
           {photos.length > 1 && (
             <>
               <button
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-navy-light/80 border border-ink-faint/20 flex items-center justify-center text-ink hover:bg-navy-mid cursor-pointer transition-colors"
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-navy-light/80 border border-ink-faint/15 flex items-center justify-center text-ink hover:bg-navy-mid cursor-pointer transition-colors"
                 onClick={(e) => { e.stopPropagation(); setActive((active - 1 + photos.length) % photos.length); }}
                 aria-label="Previous"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
               </button>
               <button
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-navy-light/80 border border-ink-faint/20 flex items-center justify-center text-ink hover:bg-navy-mid cursor-pointer transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-navy-light/80 border border-ink-faint/15 flex items-center justify-center text-ink hover:bg-navy-mid cursor-pointer transition-colors"
                 onClick={(e) => { e.stopPropagation(); setActive((active + 1) % photos.length); }}
                 aria-label="Next"
               >
@@ -1178,64 +1248,49 @@ function LaunchesPage({ nav }) {
           subtitle="Every flight teaches us something new. Here's our mission log — from first launch to next frontier."
         />
 
-        {/* Timeline */}
         <div className="relative max-w-4xl mx-auto">
-          {/* Vertical line */}
-          <div className="absolute left-6 sm:left-8 top-0 bottom-0 w-px bg-gradient-to-b from-gold via-gold/50 to-transparent" />
+          <div className="absolute left-6 sm:left-8 top-0 bottom-0 w-px bg-gradient-to-b from-gold/60 via-gold/30 to-transparent" />
 
-          {LAUNCHES.map((flight, i) => (
+          {[...LAUNCHES].reverse().map((flight, i) => (
             <Reveal key={flight.name} delay={i * 200}>
               <div className="relative pl-16 sm:pl-20 pb-16">
-                {/* Dot */}
                 <div className="absolute left-4 sm:left-6 top-2 w-5 h-5 rounded-full bg-navy border-2 border-gold flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-gold" />
                 </div>
 
                 <Card className="p-7 sm:p-9" hover={false}>
-                  {/* Header */}
                   <div className="flex flex-wrap items-center gap-3 mb-1">
                     <h3 className="font-display text-2xl sm:text-3xl font-bold">{flight.name}</h3>
                     <span className={`text-xs font-bold px-3 py-1 rounded-full ${
                       flight.status === "Completed"
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-gold/20 text-gold"
+                        ? "bg-green-500/15 text-green-400"
+                        : "bg-gold/15 text-gold"
                     }`}>
                       {flight.status}
                     </span>
                   </div>
                   <p className="text-ink-faint text-sm mb-6">{flight.date}</p>
 
-                  {/* Photo gallery */}
                   <PhotoGallery photos={flight.photos} />
 
-                  {/* ── Video placeholder ── */}
-                  {/*
-                    VIDEO: To enable the video player for this flight:
-                    1. Convert your .mov to .mp4 (for browser compatibility)
-                    2. Place the file in  public/videos/  (e.g. public/videos/flight2-launch.mp4)
-                    3. In the LAUNCHES array above, uncomment:  video: "/videos/flight2-launch.mp4",
-                    The player below will automatically appear.
-                  */}
                   {flight.video && (
-                    <div className="mb-5 rounded-xl overflow-hidden border border-ink-faint/10">
+                    <div className="mb-5 rounded-lg overflow-hidden border border-ink-faint/8">
                       <video
                         src={flight.video}
                         controls
                         playsInline
                         preload="metadata"
-                        className="w-full rounded-xl"
+                        className="w-full rounded-lg"
                         poster={flight.photos?.[0]}
                       >
                         Your browser does not support the video element.
                       </video>
-                      <div className="bg-navy-mid/50 px-4 py-2 flex items-center gap-2">
-                        <span className="text-gold text-sm">🎬</span>
+                      <div className="bg-navy-mid/50 px-4 py-2">
                         <span className="text-ink-muted text-xs">Launch Video</span>
                       </div>
                     </div>
                   )}
 
-                  {/* Mission sections */}
                   <div className="space-y-5 mb-6">
                     {flight.missionGoal && (
                       <div>
@@ -1263,10 +1318,9 @@ function LaunchesPage({ nav }) {
                     )}
                   </div>
 
-                  {/* Highlights */}
                   <div className="flex flex-wrap gap-2">
                     {flight.highlights.map((h) => (
-                      <span key={h} className="bg-navy-mid/80 text-ink-muted text-xs px-3 py-1.5 rounded-full border border-ink-faint/10">
+                      <span key={h} className="bg-navy-mid/80 text-ink-muted text-xs px-3 py-1.5 rounded-full border border-ink-faint/8">
                         {h}
                       </span>
                     ))}
@@ -1276,13 +1330,12 @@ function LaunchesPage({ nav }) {
             </Reveal>
           ))}
 
-          {/* Future marker */}
           <Reveal delay={400}>
             <div className="relative pl-16 sm:pl-20">
-              <div className="absolute left-4 sm:left-6 top-2 w-5 h-5 rounded-full bg-navy border-2 border-ink-faint/30 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-ink-faint/50" />
+              <div className="absolute left-4 sm:left-6 top-2 w-5 h-5 rounded-full bg-navy border-2 border-ink-faint/20 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-ink-faint/40" />
               </div>
-              <Card className="p-7 border-dashed border-ink-faint/20" hover={false}>
+              <Card className="p-7 border-dashed border-ink-faint/15" hover={false}>
                 <h3 className="font-display text-lg font-bold text-ink-faint">Next Mission</h3>
                 <p className="text-ink-faint text-sm mt-2">More flights in development. Stay tuned.</p>
               </Card>
@@ -1300,7 +1353,8 @@ function LaunchesPage({ nav }) {
    ═══════════════════════════════════════════════════════ */
 
 function Contact({ nav }) {
-  const [formState, setFormState] = useState("idle"); // idle | sending | sent | error
+  const [tab, setTab] = useState("contact");
+  const [formState, setFormState] = useState("idle");
   const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
 
   const handleSubmit = async (e) => {
@@ -1323,7 +1377,6 @@ function Contact({ nav }) {
         setFormState("error");
       }
     } else {
-      // Fallback to mailto
       const mailtoUrl = `mailto:${CONFIG.email}?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(
         `From: ${formData.name} (${formData.email})\n\n${formData.message}`
       )}`;
@@ -1332,7 +1385,15 @@ function Contact({ nav }) {
   };
 
   const inputClass =
-    "w-full bg-navy-mid/50 border border-ink-faint/20 rounded-xl px-5 py-3.5 text-ink text-sm placeholder:text-ink-faint/60 focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/30 transition-all font-body";
+    "w-full bg-navy-mid/40 border border-ink-faint/15 rounded-lg px-5 py-3.5 text-ink text-sm placeholder:text-ink-faint/50 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all font-body";
+
+  const tabClass = (active) =>
+    `px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer bg-transparent border-0 ${
+      active ? "text-gold bg-gold/10" : "text-ink-muted hover:text-ink hover:bg-ink-faint/10"
+    }`;
+
+  // ponytail: recruitment link placeholder — uncomment and set URL when ready
+  // const RECRUITMENT_LINK = "https://forms.gle/your-form-id";
 
   return (
     <div className="pt-28 sm:pt-36 pb-10">
@@ -1343,128 +1404,182 @@ function Contact({ nav }) {
           subtitle="Interested in sponsoring, collaborating, or learning more? We'd love to hear from you."
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 max-w-5xl mx-auto">
-          {/* Form */}
-          <div className="lg:col-span-3">
-            <Reveal direction="left">
-              <Card className="p-8 sm:p-10" hover={false}>
-                {formState === "sent" ? (
-                  <div className="text-center py-10">
-                    <div className="text-5xl mb-4">✅</div>
-                    <h3 className="font-display text-2xl font-bold mb-2">Message Sent!</h3>
-                    <p className="text-ink-muted">Thank you for reaching out. We'll get back to you soon.</p>
-                    <GoldButton className="mt-6" onClick={() => setFormState("idle")}>
-                      Send Another
-                    </GoldButton>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="text-sm text-ink-muted mb-1.5 block">Name</label>
-                        <input
-                          type="text"
-                          required
-                          className={inputClass}
-                          placeholder="Your name"
-                          value={formData.name}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-ink-muted mb-1.5 block">Email</label>
-                        <input
-                          type="email"
-                          required
-                          className={inputClass}
-                          placeholder="you@company.com"
-                          value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm text-ink-muted mb-1.5 block">Subject</label>
-                      <select
-                        className={inputClass}
-                        value={formData.subject}
-                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      >
-                        <option value="">Select a topic...</option>
-                        <option value="Sponsorship Inquiry">Sponsorship Inquiry</option>
-                        <option value="Partnership / Collaboration">Partnership / Collaboration</option>
-                        <option value="Media / Press Inquiry">Media / Press Inquiry</option>
-                        <option value="General Question">General Question</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-sm text-ink-muted mb-1.5 block">Message</label>
-                      <textarea
-                        required
-                        rows={5}
-                        className={`${inputClass} resize-none`}
-                        placeholder="Tell us how you'd like to get involved..."
-                        value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      />
-                    </div>
-                    {formState === "error" && (
-                      <p className="text-red-400 text-sm">Something went wrong. Please try again or email us directly.</p>
-                    )}
-                    <GoldButton className="w-full justify-center">
-                      {formState === "sending" ? "Sending..." : "Send Message"}
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                      </svg>
-                    </GoldButton>
-                  </form>
-                )}
-              </Card>
-            </Reveal>
-          </div>
-
-          {/* Contact info cards */}
-          <div className="lg:col-span-2 space-y-5">
-            <Reveal direction="right" delay={100}>
-              <Card className="p-7">
-                <div className="text-2xl mb-3">📧</div>
-                <h4 className="font-display font-bold mb-1">Email</h4>
-                <a href={`mailto:${CONFIG.email}`} className="text-gold text-sm hover:text-gold-glow transition-colors">
-                  {CONFIG.email}
-                </a>
-              </Card>
-            </Reveal>
-            <Reveal direction="right" delay={200}>
-              <Card className="p-7">
-                <div className="text-2xl mb-3">📍</div>
-                <h4 className="font-display font-bold mb-1">Location</h4>
-                <p className="text-ink-muted text-sm">UC San Diego<br />9500 Gilman Drive<br />La Jolla, CA 92093</p>
-              </Card>
-            </Reveal>
-            <Reveal direction="right" delay={300}>
-              <Card className="p-7">
-                <div className="text-2xl mb-3">📱</div>
-                <h4 className="font-display font-bold mb-1">Social</h4>
-                <a
-                  href={CONFIG.instagram}
-                  target="_blank"
-                  rel="noopener"
-                  className="text-gold text-sm hover:text-gold-glow transition-colors"
-                >
-                  @tarsatucsd
-                </a>
-              </Card>
-            </Reveal>
-            <Reveal direction="right" delay={400}>
-              <Card className="p-7">
-                <div className="text-2xl mb-3">🌐</div>
-                <h4 className="font-display font-bold mb-1">Website</h4>
-                <span className="text-ink-muted text-sm">{CONFIG.website}</span>
-              </Card>
-            </Reveal>
-          </div>
+        {/* Tabs */}
+        <div className="flex justify-center gap-2 mb-10">
+          <button className={tabClass(tab === "contact")} onClick={() => setTab("contact")}>Contact</button>
+          <button className={tabClass(tab === "recruitment")} onClick={() => setTab("recruitment")}>Recruitment</button>
         </div>
+
+        {tab === "contact" && (
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 max-w-5xl mx-auto">
+            <div className="lg:col-span-3">
+              <Reveal direction="left">
+                <Card className="p-8 sm:p-10" hover={false}>
+                  {formState === "sent" ? (
+                    <div className="text-center py-10">
+                      <div className="w-14 h-14 mx-auto rounded-full bg-green-500/15 flex items-center justify-center mb-4">
+                        <svg className="w-7 h-7 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                      <h3 className="font-display text-2xl font-bold mb-2">Message Sent</h3>
+                      <p className="text-ink-muted">Thank you for reaching out. We'll get back to you soon.</p>
+                      <GoldButton className="mt-6" onClick={() => setFormState("idle")}>
+                        Send Another
+                      </GoldButton>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                          <label className="text-sm text-ink-muted mb-1.5 block">Name</label>
+                          <input
+                            type="text"
+                            required
+                            className={inputClass}
+                            placeholder="Your name"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-ink-muted mb-1.5 block">Email</label>
+                          <input
+                            type="email"
+                            required
+                            className={inputClass}
+                            placeholder="you@company.com"
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm text-ink-muted mb-1.5 block">Subject</label>
+                        <select
+                          className={inputClass}
+                          value={formData.subject}
+                          onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                        >
+                          <option value="">Select a topic...</option>
+                          <option value="Sponsorship Inquiry">Sponsorship Inquiry</option>
+                          <option value="Partnership / Collaboration">Partnership / Collaboration</option>
+                          <option value="Media / Press Inquiry">Media / Press Inquiry</option>
+                          <option value="General Question">General Question</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-sm text-ink-muted mb-1.5 block">Message</label>
+                        <textarea
+                          required
+                          rows={5}
+                          className={`${inputClass} resize-none`}
+                          placeholder="Tell us how you'd like to get involved..."
+                          value={formData.message}
+                          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                        />
+                      </div>
+                      {formState === "error" && (
+                        <p className="text-red-400 text-sm">Something went wrong. Please try again or email us directly.</p>
+                      )}
+                      <GoldButton className="w-full justify-center">
+                        {formState === "sending" ? "Sending..." : "Send Message"}
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                        </svg>
+                      </GoldButton>
+                    </form>
+                  )}
+                </Card>
+              </Reveal>
+            </div>
+
+            <div className="lg:col-span-2 space-y-5">
+              <Reveal direction="right" delay={100}>
+                <Card className="p-6">
+                  <h4 className="font-display font-bold text-sm text-gold tracking-wide mb-2">Email</h4>
+                  <a href={`mailto:${CONFIG.email}`} className="text-ink-muted text-sm hover:text-gold transition-colors">
+                    {CONFIG.email}
+                  </a>
+                </Card>
+              </Reveal>
+              <Reveal direction="right" delay={200}>
+                <Card className="p-6">
+                  <h4 className="font-display font-bold text-sm text-gold tracking-wide mb-2">Location</h4>
+                  <p className="text-ink-muted text-sm">University of California, San Diego<br />9500 Gilman Drive<br />La Jolla, CA 92093-0078</p>
+                </Card>
+              </Reveal>
+              <Reveal direction="right" delay={300}>
+                <Card className="p-6">
+                  <h4 className="font-display font-bold text-sm text-gold tracking-wide mb-2">Social</h4>
+                  <a
+                    href={CONFIG.instagram}
+                    target="_blank"
+                    rel="noopener"
+                    className="text-ink-muted text-sm hover:text-gold transition-colors"
+                  >
+                    @tarsatucsd
+                  </a>
+                </Card>
+              </Reveal>
+              <Reveal direction="right" delay={400}>
+                <Card className="p-6">
+                  <h4 className="font-display font-bold text-sm text-gold tracking-wide mb-2">Website</h4>
+                  <span className="text-ink-muted text-sm">{CONFIG.website}</span>
+                </Card>
+              </Reveal>
+            </div>
+          </div>
+        )}
+
+        {tab === "recruitment" && (
+          <div className="max-w-3xl mx-auto">
+            <Reveal>
+              <Card className="p-8 sm:p-12" hover={false}>
+                <div className="text-center mb-8">
+                  <Eyebrow>Join TARS</Eyebrow>
+                  <h3 className="font-display text-2xl sm:text-3xl font-bold mt-3 mb-4">We're Recruiting</h3>
+                  <p className="text-ink-muted max-w-xl mx-auto">
+                    TARS is always looking for motivated students who want hands-on experience with real aerospace systems.
+                    No prior experience required — just curiosity and commitment.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                  {[
+                    { team: "Mechanical", what: "Structural design, CAD, fabrication" },
+                    { team: "Electrical", what: "Power systems, PCB design, comms" },
+                    { team: "Avionics", what: "Flight computers, sensors, software" },
+                    { team: "Astro / Pay", what: "Mission design, payloads, simulations" },
+                    { team: "Finance", what: "Sponsorships, budgets, grants" },
+                    { team: "Marketing", what: "Social media, content, branding" },
+                  ].map((r) => (
+                    <div key={r.team} className="bg-navy-mid/40 border border-ink-faint/8 rounded-lg p-4">
+                      <h4 className="font-display font-bold text-sm mb-1">{r.team}</h4>
+                      <p className="text-ink-faint text-xs">{r.what}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="text-center space-y-4">
+                  <div className="bg-navy-mid/40 border border-gold/15 rounded-lg p-6">
+                    <p className="text-ink-muted text-sm mb-1">Applications open quarterly. Follow us on Instagram for announcements.</p>
+                    <a href={CONFIG.instagram} target="_blank" rel="noopener" className="text-gold text-sm font-medium hover:text-gold-glow transition-colors">
+                      @tarsatucsd
+                    </a>
+                  </div>
+                  {/* ponytail: uncomment when recruitment form link is ready
+                  <GoldButton href={RECRUITMENT_LINK}>
+                    Apply Now
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </GoldButton>
+                  */}
+                </div>
+              </Card>
+            </Reveal>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1478,7 +1593,7 @@ function Contact({ nav }) {
 const PAGE_MAP = {
   "": Home,
   about: About,
-  subteams: Subteams,
+  teams: Teams,
   launches: LaunchesPage,
   contact: Contact,
 };
