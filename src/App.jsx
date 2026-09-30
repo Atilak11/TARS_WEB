@@ -98,9 +98,9 @@ const SUBTEAMS = [
 ];
 
 const LEADERSHIP = [
-  { name: "Luis Ball", role: "President", major: "Aerospace Engineering", year: "1st Year" },
-  { name: "Aadhithiya Anbalagan", role: "VP of Engineering", major: "Aerospace Engineering", year: "1st Year Transfer" },
-  { name: "Adi Kalita", role: "VP of External", major: "Computer Science", year: "1st Year" },
+  { name: "Luis Ball", role: "President", major: "Aerospace Engineering", year: "2nd Year" },
+  { name: "Aadhithiya Anbalagan", role: "VP of Engineering", major: "Aerospace Engineering", year: "2nd Year Transfer" },
+  { name: "Adi Kalita", role: "VP of External", major: "Computer Science", year: "2nd Year" },
 ];
 
 const DIRECTORS = [
@@ -1392,8 +1392,7 @@ function Contact({ nav }) {
       active ? "text-gold bg-gold/10" : "text-ink-muted hover:text-ink hover:bg-ink-faint/10"
     }`;
 
-  // ponytail: recruitment link placeholder — uncomment and set URL when ready
-  // const RECRUITMENT_LINK = "https://forms.gle/your-form-id";
+  const RECRUITMENT_LINK = "https://docs.google.com/forms/d/e/1FAIpQLSd5I4dsF5Gyop2-YL5d2pzG4CfrvCT2zgsQaWynBkx7wqMs0w/viewform";
 
   return (
     <div className="pt-28 sm:pt-36 pb-10">
@@ -1567,14 +1566,12 @@ function Contact({ nav }) {
                       @tarsatucsd
                     </a>
                   </div>
-                  {/* ponytail: uncomment when recruitment form link is ready
                   <GoldButton href={RECRUITMENT_LINK}>
                     Apply Now
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
                   </GoldButton>
-                  */}
                 </div>
               </Card>
             </Reveal>
