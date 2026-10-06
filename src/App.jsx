@@ -12,7 +12,7 @@ const CONFIG = {
   email: "tarsatucsd@gmail.com",
   website: "tarsgrp.org",
   instagram: "https://instagram.com/tarsatucsd",
-  formspreeId: "https://formspree.io/f/xrpbjorn",
+  formspreeId: "xrpbjorn",
   logo: "/images/tars-logo.png",
 };
 
