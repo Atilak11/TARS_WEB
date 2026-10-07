@@ -1091,7 +1091,7 @@ function Teams({ nav }) {
                   </div>
                 ) : (
                   <div className={`w-full h-20 sm:h-24 bg-gradient-to-r ${team.color} flex items-center px-8`}>
-                    <span className="font-display text-5xl sm:text-6xl font-bold text-white/[0.06] select-none">{team.name}</span>
+                    <span className="font-display text-5xl sm:text-6xl font-bold text-white/70 select-none">{team.name}</span>
                   </div>
                 )}
 
