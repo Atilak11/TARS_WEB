@@ -1392,8 +1392,6 @@ function Contact({ nav }) {
       active ? "text-gold bg-gold/10" : "text-ink-muted hover:text-ink hover:bg-ink-faint/10"
     }`;
 
-  const RECRUITMENT_LINK = "https://docs.google.com/forms/d/e/1FAIpQLSd5I4dsF5Gyop2-YL5d2pzG4CfrvCT2zgsQaWynBkx7wqMs0w/viewform";
-
   return (
     <div className="pt-28 sm:pt-36 pb-10">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">
@@ -1536,10 +1534,10 @@ function Contact({ nav }) {
               <Card className="p-8 sm:p-12" hover={false}>
                 <div className="text-center mb-8">
                   <Eyebrow>Join TARS</Eyebrow>
-                  <h3 className="font-display text-2xl sm:text-3xl font-bold mt-3 mb-4">We're Recruiting</h3>
+                  <h3 className="font-display text-2xl sm:text-3xl font-bold mt-3 mb-4">Fall 2026 Applications Closed</h3>
                   <p className="text-ink-muted max-w-xl mx-auto">
-                    TARS is always looking for motivated students who want hands-on experience with real aerospace systems.
-                    No prior experience required — just curiosity and commitment.
+                    Applications for Fall 2026 are now closed. Thank you to everyone who applied!
+                    Follow us on Instagram for future recruitment announcements.
                   </p>
                 </div>
 
@@ -1561,13 +1559,13 @@ function Contact({ nav }) {
 
                 <div className="text-center space-y-4">
                   <div className="bg-navy-mid/40 border border-gold/15 rounded-lg p-6">
-                    <p className="text-ink-muted text-sm mb-1">Applications open quarterly. Follow us on Instagram for announcements.</p>
+                    <p className="text-ink-muted text-sm mb-1">Stay connected for future recruitment updates.</p>
                     <a href={CONFIG.instagram} target="_blank" rel="noopener" className="text-gold text-sm font-medium hover:text-gold-glow transition-colors">
                       @tarsatucsd
                     </a>
                   </div>
-                  <GoldButton href={RECRUITMENT_LINK}>
-                    Apply Now
+                  <GoldButton href={CONFIG.instagram}>
+                    Follow Recruitment Updates
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
